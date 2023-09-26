@@ -1,11 +1,11 @@
 # Project dependencies
-.yarn
 .cache
 *.pyc
 node_modules
 yarn-error.log
 
 /public
+
 # Build directory
 /build
 .DS_Store
@@ -19,3 +19,10 @@ _site/
 .idea
 
 config.yaml
+
+# Tracks
+*.gpx
+
+# Virtual Environment
+/venv
+/bin
