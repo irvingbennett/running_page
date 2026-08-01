@@ -393,7 +393,7 @@ export function ContributionHeatmap({
                 : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'
             }`}
           >
-            {locale === 'zh' ? '全部' : 'ALL'}
+            {t('all')}
           </button>
 
           <span className="h-3 w-px bg-[var(--color-border)]" />
@@ -518,7 +518,7 @@ export function ContributionHeatmap({
                   {yr}
                 </span>
                 <span className="text-xs text-[var(--color-muted)]">
-                  {stats.count} {locale === 'zh' ? '次' : 'sessions'}
+                  {stats.count} {t('sessions')}
                   {!isGym && ` · ${formatDistance(stats.distance)} km`}
                 </span>
               </div>
@@ -670,7 +670,7 @@ export function ContributionHeatmap({
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                {allStats.count} {locale === 'zh' ? '次' : 'sessions'}
+                {allStats.count} {t('sessions')}
               </span>
               <span className="flex items-center gap-1 font-mono">
                 <svg
@@ -724,7 +724,7 @@ export function ContributionHeatmap({
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                {yearData[0].stats.count} {locale === 'zh' ? '次' : 'sessions'}
+                {yearData[0].stats.count} {t('sessions')}
               </span>
               <span className="flex items-center gap-1 font-mono">
                 <svg

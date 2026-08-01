@@ -15,8 +15,8 @@ mapbox_token: 'pk.eyJ1IjoiaXJ2aW5nYmVubmV0dCIsImEiOiJja2FvaGhlY3MwMzk5MnBxeTY4em
 # 头像 URL（支持本地路径或远程图片链接）
 avatar: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTtc69JxHNcmN1ETpMUX4dozAgAN6iPjWalQ&usqp=CAU'
 
-# 默认语言：zh（中文）| en（英文）
-locale: en
+# 默认语言：zh（中文）| en（英文） | es（西班牙文）
+locale: es
 
 # 默认主题：system（跟随系统）| light（浅色）| dark（深色）
 theme: dark

@@ -109,16 +109,11 @@ function TrackMap({
       ? 'mapbox://styles/mapbox/dark-v11'
       : 'mapbox://styles/mapbox/light-v11';
 
-  // Keep the latest props in refs via an effect (not during render) so the
-  // stable updateRoutes callback below can read them at event time. This is
-  // the React-recommended alternative to writing ref.current during render
-  // (react-hooks/refs).
   useEffect(() => {
     activityRef.current = activity;
     activitiesRef.current = activities;
   });
 
-  // Stable callback ref — always reads latest data from refs
   const updateRoutes = useRef(() => {
     const m = map.current;
     if (!m || !mapReady.current) return;
@@ -208,7 +203,6 @@ function TrackMap({
     );
   });
 
-  // Init map once
   useEffect(() => {
     if (!mapContainer.current) return;
     if (map.current) {
@@ -235,7 +229,6 @@ function TrackMap({
     };
   }, [dark]);
 
-  // Re-render routes when selection or data changes
   useEffect(() => {
     if (mapReady.current) updateRoutes.current();
   }, [activity, activities]);
@@ -256,7 +249,7 @@ export function TracksPage({
   onBack,
   onSelectActivity,
 }: TracksPageProps) {
-  const { locale } = useLocale();
+  const { t, locale } = useLocale();
   const allYears = getAvailableYears(activities);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [sportFilter, setSportFilter] = useState<SportType | null>(null);
@@ -279,7 +272,7 @@ export function TracksPage({
   );
 
   // Determine which sport types exist
-  const hasSport = (t: SportType) => activities.some((a) => a.type === t);
+  const hasSport = (tName: SportType) => activities.some((a) => a.type === tName);
 
   // Filtered base (year + sport)
   const base = activities.filter((a) => {
@@ -379,8 +372,11 @@ export function TracksPage({
     onSelectActivity?.(a);
   };
 
+  const runLabel =
+    locale === 'es' ? 'Carrera' : locale === 'zh' ? '跑步' : 'Run';
+
   const allSportTabs: { label: string; value: SportType; color: string }[] = [
-    { label: locale === 'zh' ? '跑步' : 'Run', value: 'Run', color: '#f97316' },
+    { label: runLabel, value: 'Run', color: '#f97316' },
   ];
 
   return (
@@ -404,10 +400,10 @@ export function TracksPage({
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          {locale === 'zh' ? '返回' : 'Back'}
+          {locale === 'es' ? 'Volver' : locale === 'zh' ? '返回' : 'Back'}
         </button>
         <h1 className="shrink-0 text-lg font-bold">
-          {locale === 'zh' ? '轨迹墙' : 'Track Wall'}
+          {locale === 'es' ? 'Trayectos' : locale === 'zh' ? '轨迹墙' : 'Track Wall'}
         </h1>
       </div>
 
@@ -417,12 +413,12 @@ export function TracksPage({
           {/* Stats card */}
           <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4">
             <p className="mb-3 text-[10px] tracking-wider text-[var(--color-muted)] uppercase">
-              {selectedYear ?? (locale === 'zh' ? '全部' : 'Total')}
+              {selectedYear ?? t('all')}
             </p>
             <div className="space-y-3">
               <div>
                 <p className="text-[10px] tracking-wider text-[var(--color-muted)] uppercase">
-                  {locale === 'zh' ? '活动' : 'Activities'}
+                  {t('activities')}
                 </p>
                 <p className="font-mono text-2xl font-bold text-[var(--color-accent)]">
                   {base.length}
@@ -430,7 +426,7 @@ export function TracksPage({
               </div>
               <div>
                 <p className="text-[10px] tracking-wider text-[var(--color-muted)] uppercase">
-                  {locale === 'zh' ? '距离' : 'Distance'}
+                  {locale === 'es' ? 'Distancia' : locale === 'zh' ? '距离' : 'Distance'}
                 </p>
                 <p className="font-mono text-2xl font-bold">
                   {formatDistance(totalDist)}{' '}
@@ -441,7 +437,7 @@ export function TracksPage({
               </div>
               <div>
                 <p className="text-[10px] tracking-wider text-[var(--color-muted)] uppercase">
-                  {locale === 'zh' ? '时间' : 'Time'}
+                  {locale === 'es' ? 'Tiempo' : locale === 'zh' ? '时间' : 'Time'}
                 </p>
                 <p className="font-mono text-lg font-bold">
                   {Math.floor(totalTime / 3600)}h{' '}
@@ -451,7 +447,7 @@ export function TracksPage({
               {avgPace > 0 && (
                 <div>
                   <p className="text-[10px] tracking-wider text-[var(--color-muted)] uppercase">
-                    {locale === 'zh' ? '均配速' : 'Avg Pace'}
+                    {locale === 'es' ? 'Ritmo Medio' : locale === 'zh' ? '均配速' : 'Avg Pace'}
                   </p>
                   <p className="font-mono text-lg font-bold">
                     {formatPace(avgPace)}
@@ -466,7 +462,7 @@ export function TracksPage({
             <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] px-4 py-3">
               <div className="mb-2 flex items-center justify-between gap-2">
                 <p className="text-[10px] tracking-wider text-[var(--color-muted)] uppercase">
-                  {locale === 'zh' ? '已选记录' : 'Selected'}
+                  {locale === 'es' ? 'Seleccionado' : locale === 'zh' ? '已选记录' : 'Selected'}
                 </p>
                 <button
                   onClick={() => setSelectedActivity(null)}
@@ -492,18 +488,18 @@ export function TracksPage({
               </p>
               <p className="mb-2 text-[10px] text-[var(--color-muted)]">
                 {new Date(selectedActivity.start_date_local).toLocaleDateString(
-                  locale === 'zh' ? 'zh-CN' : 'en-US',
+                  locale === 'es' ? 'es-ES' : locale === 'zh' ? 'zh-CN' : 'en-US',
                   { year: 'numeric', month: 'short', day: 'numeric' }
                 )}{' '}
                 {new Date(selectedActivity.start_date_local).toLocaleTimeString(
-                  locale === 'zh' ? 'zh-CN' : 'en-US',
+                  locale === 'es' ? 'es-ES' : locale === 'zh' ? 'zh-CN' : 'en-US',
                   { hour: '2-digit', minute: '2-digit' }
                 )}
               </p>
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <p className="text-[9px] tracking-wider text-[var(--color-muted)] uppercase">
-                    {locale === 'zh' ? '距离' : 'Distance'}
+                    {locale === 'es' ? 'Distancia' : locale === 'zh' ? '距离' : 'Distance'}
                   </p>
                   <p className="font-mono text-base leading-tight font-bold">
                     {(selectedActivity.distance / 1000).toFixed(2)}{' '}
@@ -514,7 +510,7 @@ export function TracksPage({
                 </div>
                 <div>
                   <p className="text-[9px] tracking-wider text-[var(--color-muted)] uppercase">
-                    {locale === 'zh' ? '时间' : 'Time'}
+                    {locale === 'es' ? 'Tiempo' : locale === 'zh' ? '时间' : 'Time'}
                   </p>
                   <p className="font-mono text-base leading-tight font-bold">
                     {(() => {
@@ -526,7 +522,7 @@ export function TracksPage({
                 {selectedActivity.average_speed > 0 && (
                   <div>
                     <p className="text-[9px] tracking-wider text-[var(--color-muted)] uppercase">
-                      {locale === 'zh' ? '配速' : 'Pace'}
+                      {locale === 'es' ? 'Ritmo' : locale === 'zh' ? '配速' : 'Pace'}
                     </p>
                     <p className="font-mono text-base leading-tight font-bold">
                       {formatPace(selectedActivity.average_speed)}{' '}
@@ -540,7 +536,7 @@ export function TracksPage({
                   selectedActivity.elevation_gain > 0 && (
                     <div>
                       <p className="text-[9px] tracking-wider text-[var(--color-muted)] uppercase">
-                        {locale === 'zh' ? '爬升' : 'Elev'}
+                        {locale === 'es' ? 'Desnivel' : locale === 'zh' ? '爬升' : 'Elev'}
                       </p>
                       <p className="font-mono text-base leading-tight font-bold">
                         {Math.round(selectedActivity.elevation_gain)}{' '}
@@ -554,7 +550,7 @@ export function TracksPage({
                   selectedActivity.average_heartrate > 0 && (
                     <div>
                       <p className="text-[9px] tracking-wider text-[var(--color-muted)] uppercase">
-                        {locale === 'zh' ? '心率' : 'HR'}
+                        {locale === 'es' ? 'FC' : locale === 'zh' ? '心率' : 'HR'}
                       </p>
                       <p className="font-mono text-base leading-tight font-bold">
                         {Math.round(selectedActivity.average_heartrate)}{' '}
@@ -602,7 +598,7 @@ export function TracksPage({
                 onClick={() => setSelectedYear(null)}
                 className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${selectedYear === null ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}
               >
-                {locale === 'zh' ? '全部' : 'All'}
+                {t('all')}
               </button>
               {visibleYears.map((yr) => (
                 <button
@@ -632,10 +628,10 @@ export function TracksPage({
                   onClick={() => setSportFilter(null)}
                   className={`rounded-full border px-3 py-1 text-xs font-medium transition-all ${sportFilter === null ? 'border-transparent bg-[var(--color-accent)] text-white' : 'border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]'}`}
                 >
-                  {locale === 'zh' ? '全部' : 'All'}
+                  {t('all')}
                 </button>
                 {allSportTabs
-                  .filter((t) => hasSport(t.value))
+                  .filter((tTab) => hasSport(tTab.value))
                   .map(({ label, value, color }) => (
                     <button
                       key={value}
@@ -680,7 +676,13 @@ export function TracksPage({
                   }}
                   disabled={exporting}
                   className="flex h-6 w-6 items-center justify-center rounded text-[var(--color-muted)] transition-all hover:text-[var(--color-text)] disabled:opacity-50"
-                  title={locale === 'zh' ? '导出图片' : 'Export as image'}
+                  title={
+                    locale === 'es'
+                      ? 'Exportar imagen'
+                      : locale === 'zh'
+                        ? '导出图片'
+                        : 'Export as image'
+                  }
                 >
                   {exporting ? (
                     <svg
@@ -727,7 +729,11 @@ export function TracksPage({
               </div>
             ) : clusteredTracks.length === 0 ? (
               <p className="py-8 text-center text-sm text-[var(--color-muted)]">
-                {locale === 'zh' ? '暂无轨迹数据' : 'No tracks found'}
+                {locale === 'es'
+                  ? 'No se encontraron trayectos'
+                  : locale === 'zh'
+                    ? '暂无轨迹数据'
+                    : 'No tracks found'}
               </p>
             ) : (
               <div className="flex flex-wrap gap-1">
@@ -763,34 +769,36 @@ export function TracksPage({
                   <>
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block h-0.5 w-3 rounded bg-[#f97316]" />
-                      {locale === 'zh' ? '跑步' : 'Run'}
+                      {runLabel}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <span className="inline-block h-0.5 w-3 rounded bg-[#ef4444]" />
-                      {locale === 'zh' ? '跑步 >20km' : 'Run >20km'}
+                      {runLabel} &gt;20km
                     </span>
                   </>
                 ) : null}
-                {null}
-                {null}
                 <div className="ml-auto flex items-center gap-1">
                   <span>
                     {clusteredTracks.length}{' '}
-                    {locale === 'zh' ? '条路线' : 'routes'}
+                    {locale === 'es'
+                      ? 'rutas'
+                      : locale === 'zh'
+                        ? '条路线'
+                        : 'routes'}
                   </span>
                   <span className="mx-1.5 text-[var(--color-border)]">·</span>
                   <button
                     onClick={() => setSortBy('date')}
                     className={`transition-colors ${sortBy === 'date' ? 'font-medium text-[var(--color-text)]' : 'hover:text-[var(--color-text)]'}`}
                   >
-                    {locale === 'zh' ? '时间' : 'Date'}
+                    {locale === 'es' ? 'Fecha' : locale === 'zh' ? '时间' : 'Date'}
                   </button>
                   <span className="text-[var(--color-border)]">/</span>
                   <button
                     onClick={() => setSortBy('distance')}
                     className={`transition-colors ${sortBy === 'distance' ? 'font-medium text-[var(--color-text)]' : 'hover:text-[var(--color-text)]'}`}
                   >
-                    {locale === 'zh' ? '距离' : 'Dist'}
+                    {locale === 'es' ? 'Dist' : locale === 'zh' ? '距离' : 'Dist'}
                   </button>
                 </div>
               </div>

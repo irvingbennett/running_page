@@ -11,6 +11,12 @@ interface StatsCardsProps {
   onSelectActivity: (a: Activity) => void;
 }
 
+// Safe wrapper around parseMovingTime to prevent NaN contamination
+const safeParseMovingTime = (movingTime: any): number => {
+  const parsed = parseMovingTime(movingTime);
+  return isNaN(parsed) || !parsed ? 0 : parsed;
+};
+
 export function StatsCards({
   activities,
   allActivities,
@@ -38,7 +44,7 @@ export function StatsCards({
   const yearDistance = yearActivities.reduce((s, a) => s + a.distance, 0);
   const yearCount = yearActivities.length;
   const yearSeconds = yearActivities.reduce(
-    (s, a) => s + parseMovingTime(a.moving_time),
+    (s, a) => s + safeParseMovingTime(a.moving_time),
     0
   );
 
@@ -60,7 +66,7 @@ export function StatsCards({
     0
   );
   const lastYearSeconds = lastYearActivities.reduce(
-    (s, a) => s + parseMovingTime(a.moving_time),
+    (s, a) => s + safeParseMovingTime(a.moving_time),
     0
   );
   // Unit-aware diff: seconds in time mode, meters in distance mode
@@ -84,7 +90,7 @@ export function StatsCards({
   const monthDistance = monthActivities.reduce((s, a) => s + a.distance, 0);
   const monthCount = monthActivities.length;
   const monthSeconds = monthActivities.reduce(
-    (s, a) => s + parseMovingTime(a.moving_time),
+    (s, a) => s + safeParseMovingTime(a.moving_time),
     0
   );
 
@@ -104,7 +110,7 @@ export function StatsCards({
     0
   );
   const lastMonthSeconds = lastMonthActivities.reduce(
-    (s, a) => s + parseMovingTime(a.moving_time),
+    (s, a) => s + safeParseMovingTime(a.moving_time),
     0
   );
   const monthDiff =
@@ -126,7 +132,7 @@ export function StatsCards({
   const weekDistance = weekActivities.reduce((s, a) => s + a.distance, 0);
   const weekCount = weekActivities.length;
   const weekSeconds = weekActivities.reduce(
-    (s, a) => s + parseMovingTime(a.moving_time),
+    (s, a) => s + safeParseMovingTime(a.moving_time),
     0
   );
 
@@ -144,7 +150,7 @@ export function StatsCards({
     0
   );
   const lastWeekSeconds = lastWeekActivities.reduce(
-    (s, a) => s + parseMovingTime(a.moving_time),
+    (s, a) => s + safeParseMovingTime(a.moving_time),
     0
   );
   const weekDiff =
@@ -285,6 +291,7 @@ export function StatsCards({
   }
 
   const formatHours = (secs: number) => {
+    if (isNaN(secs) || !secs) return '0.0h';
     const h = (secs / 3600).toFixed(1);
     return `${h}h`;
   };

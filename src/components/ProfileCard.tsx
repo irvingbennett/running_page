@@ -46,7 +46,10 @@ export function ProfileCard({ activities, filter = 'all' }: ProfileCardProps) {
       } catch {
         /* ignore */
       }
-    } else if (loc.includes('泰国')) {
+    } else if (loc.toLowerCase().includes('panama') || loc.includes('巴拿马')) {
+      countries.add('Panama');
+    }
+      else if (loc.includes('泰国')) {
       countries.add('泰国');
     } else if (loc.includes('日本')) {
       countries.add('日本');
@@ -220,7 +223,7 @@ export function ProfileCard({ activities, filter = 'all' }: ProfileCardProps) {
       {latest && (
         <div className="mt-4 border-t border-[var(--color-border)] pt-4">
           <p className="mb-1 text-xs text-[var(--color-muted)]">
-            {locale === 'zh' ? '最近活动' : 'Latest Activity'}
+            {t('latestActivity')}
           </p>
           <p className="text-sm font-medium">
             {latest.type === 'Run' ? '🏃 ' : '🚴 '}

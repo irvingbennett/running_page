@@ -1,0 +1,15 @@
+# Raw activity source files (keep the web output, skip huge raw archives)
+/GPX_OUT
+/FIT_OUT
+/TCX_OUT
+/raw_data
+
+# Local scripts & environment setup
+/scripts
+.env
+.env.local
+
+# Documentation & internal dev files
+README.md
+*.gpx
+*.fit

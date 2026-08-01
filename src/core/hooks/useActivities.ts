@@ -1,23 +1,47 @@
 import { useMemo } from 'react';
 import type { Activity, SportFilter } from '../types';
 
-// Canonical province extraction — handles all 3 location_country formats,
-// only returns Chinese provinces (filters out foreign locations).
+// 支持中国和巴拿马省份/原住民自治区的识别函数
 export function extractProvince(loc: string | null): string | null {
   if (!loc || loc === 'None') return null;
-  // Format 1: Python dict string {'country':'中国','province':'河南省',...}
+
+  // 格式 1: Python 字典字符串 {'country':'中国','province':'河南省',...}
   if (loc.startsWith('{')) {
     try {
       const d = JSON.parse(
         loc.replace(/'/g, '"').replace(/None/g, 'null')
       ) as Record<string, string>;
-      if (d.country === '中国' && d.province) return d.province;
+      if (d.province) return d.province;
     } catch {
       /* ignore */
     }
     return null;
   }
-  // Format 2 & 3: search for full province names first
+
+  // 巴拿马省份与自治区
+  const panamaProvinces = [
+    'Bocas del Toro',
+    'Coclé',
+    'Colón',
+    'Chiriquí',
+    'Darién',
+    'Herrera',
+    'Los Santos',
+    'Panamá',
+    'Panamá Oeste',
+    'Veraguas',
+    'Guna Yala',
+    'Emberá-Wounaan',
+    'Ndgbe-Buglé',
+  ];
+
+  for (const p of panamaProvinces) {
+    if (loc.toLowerCase().includes(p.toLowerCase())) {
+      return p;
+    }
+  }
+
+  // 中国省份与自治区全称
   const provincePatterns = [
     '北京市',
     '天津市',
@@ -57,7 +81,8 @@ export function extractProvince(loc: string | null): string | null {
   for (const p of provincePatterns) {
     if (loc.includes(p)) return p;
   }
-  // Fuzzy: short names → full names
+
+  // 中国省份模糊匹配（简称 -> 全称）
   const fuzzy: [string, string][] = [
     ['上海', '上海市'],
     ['北京', '北京市'],
@@ -95,6 +120,7 @@ export function extractProvince(loc: string | null): string | null {
   for (const [key, val] of fuzzy) {
     if (loc.includes(key)) return val;
   }
+
   return null;
 }
 
@@ -118,11 +144,63 @@ export function useFilteredActivities(
   }, [activities, filter, year]);
 }
 
-export function parseMovingTime(time: string): number {
-  const parts = time.split(':').map(Number);
-  if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  if (parts.length === 2) return parts[0] * 60 + parts[1];
-  return parts[0];
+export function parseMovingTime(time: string | number | undefined | null): number {
+  if (!time) return 0;
+
+  if (typeof time === 'number') {
+    return isNaN(time) ? 0 : time;
+  }
+
+  if (typeof time === 'string') {
+    let str = time.trim();
+    let extraDaysSeconds = 0;
+
+    // Handle "1 day, 10:44:26" strings
+    if (str.includes('day')) {
+      const dayMatch = str.match(/(\d+)\s+day/);
+      if (dayMatch) {
+        extraDaysSeconds = parseInt(dayMatch[1], 10) * 86400;
+      }
+      str = str.split(',').pop()?.trim() || str;
+    }
+
+    // Handle epoch timestamps like "1970-01-02 10:44:26.134000"
+    if (str.includes(' ')) {
+      const parts = str.split(' ');
+      const datePart = parts[0]; // e.g., "1970-01-02"
+      str = parts[1];            // e.g., "10:44:26.134000"
+
+      const dateComponents = datePart.split('-');
+      if (dateComponents.length === 3) {
+        const dayNum = parseInt(dateComponents[2], 10);
+        if (!isNaN(dayNum) && dayNum > 1) {
+          extraDaysSeconds += (dayNum - 1) * 86400;
+        }
+      }
+    }
+
+    // Strip milliseconds (.134000)
+    if (str.includes('.')) {
+      str = str.split('.')[0];
+    }
+
+    // Parse HH:MM:SS / MM:SS / SS
+    const timeParts = str.split(':').map(Number);
+    if (timeParts.some(isNaN)) return 0;
+
+    let seconds = 0;
+    if (timeParts.length === 3) {
+      seconds = timeParts[0] * 3600 + timeParts[1] * 60 + timeParts[2];
+    } else if (timeParts.length === 2) {
+      seconds = timeParts[0] * 60 + timeParts[1];
+    } else if (timeParts.length === 1) {
+      seconds = timeParts[0];
+    }
+
+    return seconds + extraDaysSeconds;
+  }
+
+  return 0;
 }
 
 export function formatDistance(meters: number): string {

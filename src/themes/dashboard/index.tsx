@@ -17,7 +17,8 @@ import { CalendarWidget } from '@/components/CalendarWidget';
 import { ProfileCard } from '@/components/ProfileCard';
 import { PersonalBest } from '@/components/PersonalBest';
 import { TracksPage } from '@/components/TracksPage';
-import { ChinaMap } from '@/components/ChinaMap';
+// import { ChinaMap } from '@/components/ChinaMap';
+import { PanamaMap } from '@/components/PanamaMap';
 
 type Page = 'home' | 'tracks';
 
@@ -93,7 +94,7 @@ function Dashboard() {
             {/* Right column */}
             <div className="flex min-w-0 flex-col gap-6 overflow-hidden">
               <ProfileCard activities={activities} filter={filter} />
-              <ChinaMap
+              <PanamaMap
                 activities={filtered}
                 filter={filter}
                 selectedProvince={selectedProvince}

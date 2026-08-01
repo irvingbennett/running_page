@@ -19,6 +19,24 @@ export function Header({ dark, toggleTheme, page, onNavigate }: HeaderProps) {
     { label: t('tracks'), page: 'tracks' },
   ];
 
+  const handleLocaleChange = () => {
+    if (locale === 'zh') {
+      setLocale('en');
+    } else if (locale === 'en') {
+      setLocale('es');
+    } else {
+      setLocale('zh');
+    }
+  };
+
+  const localeLabel = locale === 'zh' ? 'EN' : locale === 'en' ? 'ES' : '中';
+  const localeTitle =
+    locale === 'zh'
+      ? 'Switch to English'
+      : locale === 'en'
+      ? 'Switch to Spanish'
+      : '切换中文';
+
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-[var(--color-bg)]/70 backdrop-blur-md">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-4">
@@ -80,14 +98,14 @@ export function Header({ dark, toggleTheme, page, onNavigate }: HeaderProps) {
             )}
           </button>
           <button
-            onClick={() => setLocale(locale === 'zh' ? 'en' : 'zh')}
+            onClick={handleLocaleChange}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold text-[var(--color-muted)] transition-colors hover:bg-[var(--color-card)] hover:text-[var(--color-text)]"
-            title={locale === 'zh' ? 'Switch to English' : '切换中文'}
+            title={localeTitle}
           >
-            {locale === 'zh' ? 'EN' : '中'}
+            {localeLabel}
           </button>
           <a
-            href="https://github.com/yihong0618/running_page"
+            href="https://github.com/irvingbennett/running_page"
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-muted)] transition-colors hover:bg-[var(--color-card)] hover:text-[var(--color-text)]"
