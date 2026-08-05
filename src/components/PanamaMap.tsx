@@ -4,8 +4,8 @@ import { useLocale } from '../hooks/useLocale';
 import { extractProvince } from '../hooks/useActivities';
 
 interface PanamaMapProps {
-  activities: Activity[];
-  filter: SportFilter;
+  activities?: Activity[];
+  filter?: SportFilter;
   onSelectProvince?: (province: string | null) => void;
   selectedProvince?: string | null;
 }
@@ -24,7 +24,6 @@ type GeoData = {
   features: GeoFeature[];
 };
 
-// Equirectangular bounding box custom-tuned for Panama's geographic coordinates
 const BOUNDS = { minLng: -83.1, maxLng: -77.1, minLat: 7.1, maxLat: 9.7 };
 
 function project(
@@ -59,9 +58,7 @@ function featureToPath(feature: GeoFeature, w: number, h: number): string {
   }
   if (geom.type === 'MultiPolygon') {
     return geom.coordinates
-      .map((poly) =>
-        poly.map((ring) => ringToPath(ring, w, h)).join(' ')
-      )
+      .map((poly) => poly.map((ring) => ringToPath(ring, w, h)).join(' '))
       .join(' ');
   }
   return '';
@@ -69,22 +66,31 @@ function featureToPath(feature: GeoFeature, w: number, h: number): string {
 
 export function PanamaMap({
   activities = [],
-  filter,
+  filter = 'all',
   onSelectProvince,
   selectedProvince,
 }: PanamaMapProps) {
   const { locale } = useLocale();
   const [geoData, setGeoData] = useState<GeoData | null>(null);
+  const [visitedProvinces, setVisitedProvinces] = useState<Set<string>>(new Set());
   const [hoveredProvince, setHoveredProvince] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/static/panama-provincias.geojson')
-      .then((res) => res.json())
-      .then((data) => setGeoData(data))
-      .catch((err) => console.error('Failed to load Panama GeoJSON:', err));
+    // Fetch Map GeoJSON and lean Visited Provinces JSON in parallel
+    Promise.all([
+      fetch('/static/panama-provincias.geojson').then((res) => res.json()),
+      fetch('/visited-provinces.json')
+        .then((res) => res.json())
+        .catch(() => ({ visited: [] }))
+    ])
+      .then(([geoJsonData, visitedData]) => {
+        setGeoData(geoJsonData);
+        setVisitedProvinces(new Set(visitedData.visited || []));
+      })
+      .catch((err) => console.error('Failed to load map static assets:', err));
   }, []);
 
-  // Calculate activity count per province safely
+  // Compute local activity counts if activity details exist in memory
   const provinceCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     const safeActivities = activities || [];
@@ -156,8 +162,8 @@ export function PanamaMap({
             const name = feature.properties?.NOMBRE;
             if (!name) return null;
 
-            const count = provinceCounts[name] || 0;
-            const visited = count > 0;
+            // Checked against the visited JSON set OR dynamic activity counts
+            const visited = visitedProvinces.has(name) || (provinceCounts[name] || 0) > 0;
             const isSelected = selectedProvince === name;
             const isHovered = hoveredProvince === name;
 
@@ -166,8 +172,7 @@ export function PanamaMap({
               if (isSelected || isHovered) {
                 fill = 'var(--color-accent)';
               } else {
-                fill =
-                  'color-mix(in srgb, var(--color-accent) 55%, transparent)';
+                fill = 'color-mix(in srgb, var(--color-accent) 55%, transparent)';
               }
             } else if (isHovered) {
               fill = 'var(--color-accent)/30';
@@ -185,7 +190,7 @@ export function PanamaMap({
                 }`}
                 onMouseEnter={() => setHoveredProvince(name)}
                 onMouseLeave={() => setHoveredProvince(null)}
-                onClick={() => handleClick(name)}
+                onClick={() => visited && handleClick(name)}
               />
             );
           })}

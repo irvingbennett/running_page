@@ -3,7 +3,6 @@ import { useLocale } from '../hooks/useLocale';
 import {
   formatDistance,
   parseMovingTime,
-  extractProvince,
 } from '../hooks/useActivities';
 import { AVATAR } from '../config';
 
@@ -32,33 +31,47 @@ export function ProfileCard({ activities, filter = 'all' }: ProfileCardProps) {
   const yearsActive =
     allDates.length > 0 ? Math.max(...allDates) - Math.min(...allDates) + 1 : 0;
 
-  // Countries and provinces — use shared extractProvince for consistency with ChinaMap
+  // Dynamic detection for all countries and provinces
   const countries = new Set<string>();
   const provinces = new Set<string>();
+
   for (const a of activities) {
     const loc = a.location_country;
-    if (!loc || loc === 'None') continue;
-    // Detect country
+    if (!loc || loc === 'None' || loc === 'null') continue;
+
+    let parsedCountry: string | null = null;
+    let parsedProvince: string | null = null;
+
+    // 1. Try parsing JSON format
     if (loc.startsWith('{')) {
       try {
-        const d = JSON.parse(loc.replace(/'/g, '"').replace(/None/g, 'null'));
-        if (d.country) countries.add(d.country);
+        const d = JSON.parse(
+          loc
+            .replace(/'/g, '"')
+            .replace(/None/g, 'null')
+            .replace(/True/g, 'true')
+            .replace(/False/g, 'false')
+        );
+        parsedCountry = d.country || d.country_code || null;
+        parsedProvince = d.province || d.state || d.region || null;
       } catch {
-        /* ignore */
+        /* fallback to string extraction */
       }
-    } else if (loc.toLowerCase().includes('panama') || loc.includes('巴拿马')) {
-      countries.add('Panama');
     }
-      else if (loc.includes('泰国')) {
-      countries.add('泰国');
-    } else if (loc.includes('日本')) {
-      countries.add('日本');
-    } else {
-      countries.add('中国');
+
+    // 2. Fallback parsing for raw strings (e.g., "Panama", "Spain", "Costa Rica, San Jose")
+    if (!parsedCountry) {
+      const parts = loc.split(',').map((p) => p.trim());
+      if (parts.length > 1) {
+        parsedProvince = parts[0];
+        parsedCountry = parts[parts.length - 1];
+      } else {
+        parsedCountry = loc;
+      }
     }
-    // Province — use shared logic (China-only)
-    const p = extractProvince(loc);
-    if (p) provinces.add(p);
+
+    if (parsedCountry) countries.add(parsedCountry);
+    if (parsedProvince) provinces.add(parsedProvince);
   }
 
   const formatHours = (secs: number) => `${(secs / 3600).toFixed(1)}h`;
