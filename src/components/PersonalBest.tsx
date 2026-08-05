@@ -27,28 +27,13 @@ export function PersonalBest({
   activities,
   onSelectActivity,
 }: PersonalBestProps) {
-  const { locale } = useLocale();
+  const { t } = useLocale();
 
   // Only outdoor runs with valid GPS tracks (polyline must be substantial, not just a point)
   const runs = activities.filter(
     (a) =>
       a.type === 'Run' && a.summary_polyline && a.summary_polyline.length > 20
   );
-
-  const labels: Record<string, string> =
-    locale === 'zh'
-      ? {
-          '5K': '5公里',
-          '10K': '10公里',
-          'Half Marathon': '半程马拉松',
-          Marathon: '全程马拉松',
-        }
-      : {
-          '5K': '5K',
-          '10K': '10K',
-          'Half Marathon': 'Half Marathon',
-          Marathon: 'Marathon',
-        };
 
   const bests = DISTANCES.map(({ key, min, max }) => {
     const matching = runs.filter((a) => {
@@ -87,7 +72,7 @@ export function PersonalBest({
             d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
           />
         </svg>
-        {locale === 'zh' ? '个人最佳' : 'Personal Best'}
+        {t('personalBest')}
       </h3>
 
       <div className="divide-y divide-[var(--color-border)]">
@@ -102,7 +87,7 @@ export function PersonalBest({
             onClick={() => activity && onSelectActivity?.(activity)}
           >
             <span className="text-xs text-[var(--color-text)]">
-              {labels[key]}
+              {t(key)}
             </span>
             <span
               className={`font-mono text-xs font-bold ${activity ? 'text-[var(--color-accent)]' : 'text-[var(--color-muted)]'}`}

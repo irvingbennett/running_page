@@ -133,7 +133,7 @@ export function PanamaMap({
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-4 transition-all duration-300 hover:border-[var(--color-accent)]/30 hover:shadow-lg">
       <div className="flex items-center justify-between pb-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)]">
-          {locale === 'zh' ? '巴拿马地图' : 'Panama Map'}
+          {locale === 'zh' ? '巴拿马地图' : 'Mapa de Panamá'}
         </span>
         {selectedProvince && (
           <button
